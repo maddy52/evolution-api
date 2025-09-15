@@ -13,21 +13,22 @@ services:
     volumes:
       - evolution_instances:/evolution/instances
     networks:
-      - coolify   # attach to Traefik's external network
+      - coolify
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=coolify"
 
-      # Service (container internal port)
+      # Service, container internal port
       - "traefik.http.services.evoapi-svc.loadbalancer.server.port=8080"
 
-      # HTTPS router (Coolify v4 proxy uses entryPoints 'https' and 'http')
+      # HTTPS router
       - "traefik.http.routers.evoapi-https.rule=Host(`evoapi.growthgrid.me`)"
       - "traefik.http.routers.evoapi-https.entryPoints=https"
       - "traefik.http.routers.evoapi-https.tls=true"
       - "traefik.http.routers.evoapi-https.tls.certresolver=letsencrypt"
       - "traefik.http.routers.evoapi-https.service=evoapi-svc"
 
-      # HTTP → HTTPS redirect
+      # HTTP to HTTPS redirect
       - "traefik.http.middlewares.evoapi-redirect.redirectscheme.scheme=https"
       - "traefik.http.routers.evoapi-http.rule=Host(`evoapi.growthgrid.me`)"
       - "traefik.http.routers.evoapi-http.entryPoints=http"
@@ -77,4 +78,4 @@ volumes:
 
 networks:
   coolify:
-    external: true   # this is Coolify's proxy network
+    external: true
