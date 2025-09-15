@@ -12,15 +12,17 @@ services:
       - .env
     volumes:
       - evolution_instances:/evolution/instances
+    networks:
+      - coolify   # attach to Traefik's external network
     labels:
       - "traefik.enable=true"
 
-      # Service (container's internal port)
+      # Service (container internal port)
       - "traefik.http.services.evoapi-svc.loadbalancer.server.port=8080"
 
-      # HTTPS router
+      # HTTPS router (Coolify v4 proxy uses entryPoints 'https' and 'http')
       - "traefik.http.routers.evoapi-https.rule=Host(`evoapi.growthgrid.me`)"
-      - "traefik.http.routers.evoapi-https.entryPoints=websecure"
+      - "traefik.http.routers.evoapi-https.entryPoints=https"
       - "traefik.http.routers.evoapi-https.tls=true"
       - "traefik.http.routers.evoapi-https.tls.certresolver=letsencrypt"
       - "traefik.http.routers.evoapi-https.service=evoapi-svc"
@@ -28,7 +30,7 @@ services:
       # HTTP → HTTPS redirect
       - "traefik.http.middlewares.evoapi-redirect.redirectscheme.scheme=https"
       - "traefik.http.routers.evoapi-http.rule=Host(`evoapi.growthgrid.me`)"
-      - "traefik.http.routers.evoapi-http.entryPoints=web"
+      - "traefik.http.routers.evoapi-http.entryPoints=http"
       - "traefik.http.routers.evoapi-http.middlewares=evoapi-redirect"
       - "traefik.http.routers.evoapi-http.service=evoapi-svc"
 
@@ -41,9 +43,7 @@ services:
     volumes:
       - evolution_redis:/data
     networks:
-      default:
-        aliases:
-          - evolution-redis
+      - coolify
     labels:
       - "traefik.enable=false"
 
@@ -66,9 +66,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      default:
-        aliases:
-          - evolution-postgres
+      - coolify
     labels:
       - "traefik.enable=false"
 
@@ -76,3 +74,7 @@ volumes:
   evolution_instances:
   evolution_redis:
   postgres_data:
+
+networks:
+  coolify:
+    external: true   # this is Coolify's proxy network
