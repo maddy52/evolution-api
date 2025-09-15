@@ -12,27 +12,26 @@ services:
       - .env
     volumes:
       - evolution_instances:/evolution/instances
-    # Coolify proxy, HTTPS, and certificate via Traefik
-labels:
-  - "traefik.enable=true"
+    labels:
+      - "traefik.enable=true"
 
-  # Service (internal port in the container)
-  - "traefik.http.services.evoapi-svc.loadbalancer.server.port=8080"
+      # Service (container's internal port)
+      - "traefik.http.services.evoapi-svc.loadbalancer.server.port=8080"
 
-  # HTTPS router
-  - "traefik.http.routers.evoapi-https.rule=Host(`evoapi.growthgrid.me`)"
-  - "traefik.http.routers.evoapi-https.entryPoints=websecure"
-  - "traefik.http.routers.evoapi-https.tls=true"
-  - "traefik.http.routers.evoapi-https.tls.certresolver=letsencrypt"
-  - "traefik.http.routers.evoapi-https.service=evoapi-svc"
+      # HTTPS router
+      - "traefik.http.routers.evoapi-https.rule=Host(`evoapi.growthgrid.me`)"
+      - "traefik.http.routers.evoapi-https.entryPoints=websecure"
+      - "traefik.http.routers.evoapi-https.tls=true"
+      - "traefik.http.routers.evoapi-https.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.evoapi-https.service=evoapi-svc"
 
-  # HTTP → HTTPS redirect
-  - "traefik.http.middlewares.evoapi-redirect.redirectscheme.scheme=https"
-  - "traefik.http.routers.evoapi-http.rule=Host(`evoapi.growthgrid.me`)"
-  - "traefik.http.routers.evoapi-http.entryPoints=web"
-  - "traefik.http.routers.evoapi-http.middlewares=evoapi-redirect"
-  - "traefik.http.routers.evoapi-http.service=evoapi-svc"
-  
+      # HTTP → HTTPS redirect
+      - "traefik.http.middlewares.evoapi-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.evoapi-http.rule=Host(`evoapi.growthgrid.me`)"
+      - "traefik.http.routers.evoapi-http.entryPoints=web"
+      - "traefik.http.routers.evoapi-http.middlewares=evoapi-redirect"
+      - "traefik.http.routers.evoapi-http.service=evoapi-svc"
+
   redis:
     container_name: evolution_redis
     image: redis:latest
@@ -41,7 +40,6 @@ labels:
       redis-server --port 6379 --appendonly yes
     volumes:
       - evolution_redis:/data
-    # Provide the alias some templates expect
     networks:
       default:
         aliases:
@@ -67,7 +65,6 @@ labels:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    # Provide the alias some templates expect
     networks:
       default:
         aliases:
