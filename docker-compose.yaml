@@ -14,24 +14,24 @@ services:
       - evolution_instances:/evolution/instances
     # Coolify proxy, HTTPS, and certificate via Traefik
 labels:
-  - traefik.enable=true
+  - "traefik.enable=true"
 
-  # service
-  - traefik.http.services.evoapi-svc.loadbalancer.server.port=8080
+  # Service (internal port in the container)
+  - "traefik.http.services.evoapi-svc.loadbalancer.server.port=8080"
 
   # HTTPS router
-  - traefik.http.routers.evoapi-https.rule=Host(`evoapi.growthgrid.me`)
-  - traefik.http.routers.evoapi-https.entryPoints=websecure
-  - traefik.http.routers.evoapi-https.tls=true
-  - traefik.http.routers.evoapi-https.tls.certresolver=letsencrypt
-  - traefik.http.routers.evoapi-https.service=evoapi-svc
+  - "traefik.http.routers.evoapi-https.rule=Host(`evoapi.growthgrid.me`)"
+  - "traefik.http.routers.evoapi-https.entryPoints=websecure"
+  - "traefik.http.routers.evoapi-https.tls=true"
+  - "traefik.http.routers.evoapi-https.tls.certresolver=letsencrypt"
+  - "traefik.http.routers.evoapi-https.service=evoapi-svc"
 
   # HTTP → HTTPS redirect
-  - traefik.http.middlewares.evoapi-redirect.redirectscheme.scheme=https
-  - traefik.http.routers.evoapi-http.rule=Host(`evoapi.growthgrid.me`)
-  - traefik.http.routers.evoapi-http.entryPoints=web
-  - traefik.http.routers.evoapi-http.middlewares=evoapi-redirect
-  - traefik.http.routers.evoapi-http.service=evoapi-svc
+  - "traefik.http.middlewares.evoapi-redirect.redirectscheme.scheme=https"
+  - "traefik.http.routers.evoapi-http.rule=Host(`evoapi.growthgrid.me`)"
+  - "traefik.http.routers.evoapi-http.entryPoints=web"
+  - "traefik.http.routers.evoapi-http.middlewares=evoapi-redirect"
+  - "traefik.http.routers.evoapi-http.service=evoapi-svc"
   
   redis:
     container_name: evolution_redis
