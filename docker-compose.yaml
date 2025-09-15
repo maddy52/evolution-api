@@ -16,8 +16,7 @@ services:
       AUTHENTICATION_API_KEY: "your_long_random_key_here"
       DATABASE_ENABLED: "true"
       DATABASE_PROVIDER: "postgresql"
-      # You can keep this; Prisma inside the image will still use host 'postgres',
-      # which we make resolve to our local DB below.
+      # This is fine to keep; Prisma will still use host "postgres"
       DATABASE_URL: "postgresql://evolution:HSwYWENGkr6jzfHayl9ulTFAveZjBVBb4Pvs4GC3RdD5yOvbrwi8FgimvsLw5taT@postgresql-database-tswos8s0g84ks08400ggk8c0:5432/postgres"
       REDIS_URI: "redis://redis:6379"
       SERVICE_FQDN_API: "https://evoapi.growthgrid.me"
@@ -30,7 +29,7 @@ services:
       # Service (container internal port)
       - "traefik.http.services.evoapi-svc.loadbalancer.server.port=8080"
 
-      # HTTPS router (Coolify v4 uses 'http' / 'https' entry points)
+      # HTTPS router
       - "traefik.http.routers.evoapi-https.rule=Host(`evoapi.growthgrid.me`)"
       - "traefik.http.routers.evoapi-https.entryPoints=https"
       - "traefik.http.routers.evoapi-https.tls=true"
@@ -59,21 +58,20 @@ services:
   evolution-postgres:
     image: postgres:15
     restart: always
-    # remove env_file to avoid conflicts
+    # REMOVE env_file to avoid conflicts
     # env_file:
     #   - .env
     command: ["postgres","-c","max_connections=1000","-c","listen_addresses=*"]
     environment:
-      # EXACT credentials Prisma is expecting
       POSTGRES_DB: evolution_db
       POSTGRES_USER: evolution
       POSTGRES_PASSWORD: HSwYWENGkr6jzfHayl9ulTFAveZjBVBb4Pvs4GC3RdD5yOvbrwi8FgimvsLw5taT
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      # >>> renamed volume so Postgres initializes fresh <<<
+      - pgdata_evoapi:/var/lib/postgresql/data
     networks:
       default:
         aliases:
-          # Make hostname "postgres" resolve to THIS container
           - postgres
     labels:
       - "traefik.enable=false"
@@ -81,7 +79,8 @@ services:
 volumes:
   evolution_instances:
   evolution_redis:
-  postgres_data:
+  # >>> new volume name <<<
+  pgdata_evoapi:
 
 networks:
   coolify:
