@@ -19,7 +19,7 @@ services:
       DATABASE_PROVIDER: "postgresql"
       # OK to keep; if the image's internal .env points to "postgres",
       # we also make that hostname resolve to our DB below.
-      DATABASE_URL: "postgresql://evolution:HSwYWENGkr6jzfHayl9ulTFAveZjBVBb4Pvs4GC3RdD5yOvbrwi8FgimvsLw5taT@postgresql-database-tswos8s0g84ks08400ggk8c0:5432/postgres"
+      DATABASE_URL: "postgresql://postgres:HSwYWENGkr6jzfHayl9ulTFAveZjBVBb4Pvs4GC3RdD5yOvbrwi8FgimvsLw5taT@postgresql-database-tswos8s0g84ks08400ggk8c0:5432/postgres"
       REDIS_URI: "redis://redis:6379"
       SERVICE_FQDN_API: "https://evoapi.growthgrid.me"
       PORT: "8080"
