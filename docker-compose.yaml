@@ -10,6 +10,18 @@ services:
     networks:
       - default          # project's own bridge network (auto)
       - coolify          # Coolify/Traefik external proxy network
+
+    # >>> Added: correct runtime env for Evolution API <<<
+    environment:
+      AUTHENTICATION_API_KEY: "your_long_random_key_here"
+      DATABASE_ENABLED: "true"
+      DATABASE_PROVIDER: "postgresql"
+      DATABASE_URL: "postgresql://evolution:HSwYWENGkr6jzfHayl9ulTFAveZjBVBb4Pvs4GC3RdD5yOvbrwi8FgimvsLw5taT@postgresql-database-tswos8s0g84ks08400ggk8c0:5432/postgres"
+      REDIS_URI: "redis://redis:6379"
+      SERVICE_FQDN_API: "https://evoapi.growthgrid.me"
+      PORT: "8080"
+    # <<< End added envs
+
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=coolify"
