@@ -8,17 +8,26 @@ services:
     depends_on:
       - redis
       - evolution-postgres
-    ports:
-      - "127.0.0.1:8080:8080"
-    volumes:
-      - evolution_instances:/evolution/instances
-    networks:
-      - evolution-net
-      - dokploy-network
     env_file:
       - .env
-    expose:
-      - "8080"
+    volumes:
+      - evolution_instances:/evolution/instances
+    # Coolify proxy, HTTPS, and certificate via Traefik
+    labels:
+      - "traefik.enable=true"
+      # HTTPS router for evoapi.growthgrid.me
+      - "traefik.http.routers.evoapi_https.rule=Host(`evoapi.growthgrid.me`)"
+      - "traefik.http.routers.evoapi_https.entryPoints=https"
+      - "traefik.http.routers.evoapi_https.tls=true"
+      - "traefik.http.routers.evoapi_https.tls.certresolver=letsencrypt"
+      # Tell Traefik the container’s internal port
+      - "traefik.http.services.evoapi_svc.loadbalancer.server.port=8080"
+      - "traefik.http.routers.evoapi_https.service=evoapi_svc"
+      # Optional HTTP to HTTPS redirect
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.routers.evoapi_http.rule=Host(`evoapi.growthgrid.me`)"
+      - "traefik.http.routers.evoapi_http.entryPoints=http"
+      - "traefik.http.routers.evoapi_http.middlewares=redirect-to-https"
 
   redis:
     container_name: evolution_redis
@@ -28,15 +37,13 @@ services:
       redis-server --port 6379 --appendonly yes
     volumes:
       - evolution_redis:/data
+    # Provide the alias some templates expect
     networks:
-      evolution-net:
+      default:
         aliases:
           - evolution-redis
-      dokploy-network:
-        aliases:
-          - evolution-redis
-    expose:
-      - "6379"
+    labels:
+      - "traefik.enable=false"
 
   evolution-postgres:
     container_name: evolution_postgres
@@ -56,20 +63,15 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    # Provide the alias some templates expect
     networks:
-      - evolution-net
-      - dokploy-network
-    expose:
-      - "5432"
+      default:
+        aliases:
+          - evolution-postgres
+    labels:
+      - "traefik.enable=false"
 
 volumes:
   evolution_instances:
   evolution_redis:
   postgres_data:
-
-networks:
-  evolution-net:
-    name: evolution-net
-    driver: bridge
-  dokploy-network:
-    external: true
