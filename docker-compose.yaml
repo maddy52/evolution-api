@@ -16,8 +16,8 @@ services:
       AUTHENTICATION_API_KEY: "your_long_random_key_here"
       DATABASE_ENABLED: "true"
       DATABASE_PROVIDER: "postgresql"
-      # This is fine to keep; Prisma will still use host "postgres"
-      DATABASE_URL: "postgresql://evolution:HSwYWENGkr6jzfHayl9ulTFAveZjBVBb4Pvs4GC3RdD5yOvbrwi8FgimvsLw5taT@postgresql-database-tswos8s0g84ks08400ggk8c0:5432/postgres"
+      # ✅ point to the local DB container by alias, and to the correct DB name
+      DATABASE_URL: "postgresql://evolution:HSwYWENGkr6jzfHayl9ulTFAveZjBVBb4Pvs4GC3RdD5yOvbrwi8FgimvsLw5taT@postgres:5432/evolution_db"
       REDIS_URI: "redis://redis:6379"
       SERVICE_FQDN_API: "https://evoapi.growthgrid.me"
       PORT: "8080"
@@ -67,7 +67,7 @@ services:
       POSTGRES_USER: evolution
       POSTGRES_PASSWORD: HSwYWENGkr6jzfHayl9ulTFAveZjBVBb4Pvs4GC3RdD5yOvbrwi8FgimvsLw5taT
     volumes:
-      # >>> renamed volume so Postgres initializes fresh <<<
+      # renamed volume so Postgres initializes fresh
       - pgdata_evoapi:/var/lib/postgresql/data
     networks:
       default:
@@ -79,7 +79,6 @@ services:
 volumes:
   evolution_instances:
   evolution_redis:
-  # >>> new volume name <<<
   pgdata_evoapi:
 
 networks:
