@@ -2,7 +2,6 @@ version: "3.8"
 
 services:
   api:
-    container_name: evolution_api
     image: evoapicloud/evolution-api:latest
     restart: always
     depends_on:
@@ -13,22 +12,24 @@ services:
     volumes:
       - evolution_instances:/evolution/instances
     networks:
-      - coolify
+      - default        # app's own bridge network
+      - coolify        # Coolify/Traefik external network
     labels:
       - "traefik.enable=true"
+      # tell Traefik which network to use to reach this container
       - "traefik.docker.network=coolify"
 
-      # Service, container internal port
+      # service (container internal port)
       - "traefik.http.services.evoapi-svc.loadbalancer.server.port=8080"
 
-      # HTTPS router
+      # HTTPS router (Coolify v4 uses 'http'/'https' entrypoints)
       - "traefik.http.routers.evoapi-https.rule=Host(`evoapi.growthgrid.me`)"
       - "traefik.http.routers.evoapi-https.entryPoints=https"
       - "traefik.http.routers.evoapi-https.tls=true"
       - "traefik.http.routers.evoapi-https.tls.certresolver=letsencrypt"
       - "traefik.http.routers.evoapi-https.service=evoapi-svc"
 
-      # HTTP to HTTPS redirect
+      # HTTP → HTTPS redirect
       - "traefik.http.middlewares.evoapi-redirect.redirectscheme.scheme=https"
       - "traefik.http.routers.evoapi-http.rule=Host(`evoapi.growthgrid.me`)"
       - "traefik.http.routers.evoapi-http.entryPoints=http"
@@ -36,7 +37,6 @@ services:
       - "traefik.http.routers.evoapi-http.service=evoapi-svc"
 
   redis:
-    container_name: evolution_redis
     image: redis:latest
     restart: always
     command: >
@@ -44,12 +44,11 @@ services:
     volumes:
       - evolution_redis:/data
     networks:
-      - coolify
+      - default
     labels:
       - "traefik.enable=false"
 
   evolution-postgres:
-    container_name: evolution_postgres
     image: postgres:15
     restart: always
     env_file:
@@ -67,7 +66,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - coolify
+      - default
     labels:
       - "traefik.enable=false"
 
@@ -77,5 +76,10 @@ volumes:
   postgres_data:
 
 networks:
+  # default project network (Coolify will auto-create)
+  default:
+    name: evoapi-net
+    driver: bridge
+  # Coolify's external proxy network (already exists)
   coolify:
     external: true
