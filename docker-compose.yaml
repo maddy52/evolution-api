@@ -12,17 +12,17 @@ services:
     volumes:
       - evolution_instances:/evolution/instances
     networks:
-      - default        # app's own bridge network
-      - coolify        # Coolify/Traefik external network
+      - appnet          # private app network
+      - coolify         # Coolify/Traefik proxy network
     labels:
       - "traefik.enable=true"
       # tell Traefik which network to use to reach this container
       - "traefik.docker.network=coolify"
 
-      # service (container internal port)
+      # service (container's internal port)
       - "traefik.http.services.evoapi-svc.loadbalancer.server.port=8080"
 
-      # HTTPS router (Coolify v4 uses 'http'/'https' entrypoints)
+      # HTTPS router (Coolify v4 proxy uses 'http' & 'https' entry points)
       - "traefik.http.routers.evoapi-https.rule=Host(`evoapi.growthgrid.me`)"
       - "traefik.http.routers.evoapi-https.entryPoints=https"
       - "traefik.http.routers.evoapi-https.tls=true"
@@ -44,7 +44,7 @@ services:
     volumes:
       - evolution_redis:/data
     networks:
-      - default
+      - appnet
     labels:
       - "traefik.enable=false"
 
@@ -57,8 +57,6 @@ services:
       - postgres
       - -c
       - max_connections=1000
-      - -c
-      - listen_addresses=*
     environment:
       - POSTGRES_DB=${POSTGRES_DATABASE}
       - POSTGRES_USER=${POSTGRES_USERNAME}
@@ -66,7 +64,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - default
+      - appnet
     labels:
       - "traefik.enable=false"
 
@@ -76,10 +74,11 @@ volumes:
   postgres_data:
 
 networks:
-  # default project network (Coolify will auto-create)
-  default:
+  # your private app network
+  appnet:
     name: evoapi-net
     driver: bridge
-  # Coolify's external proxy network (already exists)
+  # Coolify's external proxy network (you confirmed it's literally named 'coolify')
   coolify:
     external: true
+    name: coolify
