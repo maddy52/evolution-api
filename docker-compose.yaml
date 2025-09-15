@@ -11,15 +11,14 @@ services:
       - default          # project's own bridge network (auto)
       - coolify          # Coolify/Traefik external proxy network
 
-    # Keep these so you can manage secrets in Coolify UI.
-    # Even if the image loads its own .env, this won't break anything.
+    # Runtime env for Evolution API
     environment:
       AUTHENTICATION_API_KEY: "your_long_random_key_here"
       DATABASE_ENABLED: "true"
       DATABASE_PROVIDER: "postgresql"
-      # OK to keep; if the image's internal .env points to "postgres",
-      # we also make that hostname resolve to our DB below.
-      DATABASE_URL: "postgresql://postgres:HSwYWENGkr6jzfHayl9ulTFAveZjBVBb4Pvs4GC3RdD5yOvbrwi8FgimvsLw5taT@postgresql-database-tswos8s0g84ks08400ggk8c0:5432/postgres"
+      # You can keep this; Prisma inside the image will still use host 'postgres',
+      # which we make resolve to our local DB below.
+      DATABASE_URL: "postgresql://evolution:HSwYWENGkr6jzfHayl9ulTFAveZjBVBb4Pvs4GC3RdD5yOvbrwi8FgimvsLw5taT@postgresql-database-tswos8s0g84ks08400ggk8c0:5432/postgres"
       REDIS_URI: "redis://redis:6379"
       SERVICE_FQDN_API: "https://evoapi.growthgrid.me"
       PORT: "8080"
@@ -60,12 +59,12 @@ services:
   evolution-postgres:
     image: postgres:15
     restart: always
-    # IMPORTANT: remove env_file so nothing overrides these values
+    # remove env_file to avoid conflicts
     # env_file:
     #   - .env
     command: ["postgres","-c","max_connections=1000","-c","listen_addresses=*"]
     environment:
-      # Match what Prisma expects: database "evolution_db", user "evolution"
+      # EXACT credentials Prisma is expecting
       POSTGRES_DB: evolution_db
       POSTGRES_USER: evolution
       POSTGRES_PASSWORD: HSwYWENGkr6jzfHayl9ulTFAveZjBVBb4Pvs4GC3RdD5yOvbrwi8FgimvsLw5taT
@@ -74,8 +73,7 @@ services:
     networks:
       default:
         aliases:
-          # This makes the hostname "postgres" resolve to THIS container,
-          # so if the image's .env points to postgres:5432 it will connect here.
+          # Make hostname "postgres" resolve to THIS container
           - postgres
     labels:
       - "traefik.enable=false"
