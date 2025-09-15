@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   api:
     image: evoapicloud/evolution-api:latest
@@ -12,17 +10,16 @@ services:
     volumes:
       - evolution_instances:/evolution/instances
     networks:
-      - appnet          # private app network
-      - coolify         # Coolify/Traefik proxy network
+      - default          # project's own bridge network (auto)
+      - coolify          # Coolify/Traefik external proxy network
     labels:
       - "traefik.enable=true"
-      # tell Traefik which network to use to reach this container
       - "traefik.docker.network=coolify"
 
-      # service (container's internal port)
+      # Service (container internal port)
       - "traefik.http.services.evoapi-svc.loadbalancer.server.port=8080"
 
-      # HTTPS router (Coolify v4 proxy uses 'http' & 'https' entry points)
+      # HTTPS router (Coolify v4 uses 'http' / 'https' entry points)
       - "traefik.http.routers.evoapi-https.rule=Host(`evoapi.growthgrid.me`)"
       - "traefik.http.routers.evoapi-https.entryPoints=https"
       - "traefik.http.routers.evoapi-https.tls=true"
@@ -44,7 +41,7 @@ services:
     volumes:
       - evolution_redis:/data
     networks:
-      - appnet
+      - default
     labels:
       - "traefik.enable=false"
 
@@ -53,10 +50,7 @@ services:
     restart: always
     env_file:
       - .env
-    command:
-      - postgres
-      - -c
-      - max_connections=1000
+    command: ["postgres","-c","max_connections=1000","-c","listen_addresses=*"]
     environment:
       - POSTGRES_DB=${POSTGRES_DATABASE}
       - POSTGRES_USER=${POSTGRES_USERNAME}
@@ -64,7 +58,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - appnet
+      - default
     labels:
       - "traefik.enable=false"
 
@@ -74,11 +68,6 @@ volumes:
   postgres_data:
 
 networks:
-  # your private app network
-  appnet:
-    name: evoapi-net
-    driver: bridge
-  # Coolify's external proxy network (you confirmed it's literally named 'coolify')
   coolify:
     external: true
     name: coolify
