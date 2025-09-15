@@ -5,8 +5,6 @@ services:
     depends_on:
       - redis
       - evolution-postgres
-    env_file:
-      - .env
     volumes:
       - evolution_instances:/evolution/instances
     networks:
